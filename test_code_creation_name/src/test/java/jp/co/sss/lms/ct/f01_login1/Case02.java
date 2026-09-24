@@ -80,8 +80,8 @@ public class Case02 {
 		Thread.sleep(1000);
 
 		//ログインIDと間違えたパスワードを記憶
-		String myId = "StudentAA01";
-		String myPw = "StudentAA01_error";
+		String myId = "ABCdef12345";
+		String myPw = "ABCdef12345error";
 
 		//[No.02]画面の表示内容を確認する。
 		//ログインID、パスワード、ログインボタンが表示されていること
@@ -95,14 +95,26 @@ public class Case02 {
 		assertTrue(checkLoginId.isDisplayed());
 		assertTrue(checkPass.isDisplayed());
 		assertTrue(checkloginButton.isDisplayed());
+
 		//3秒待つ
 		Thread.sleep(3000);
+
+		//  ログインボタンをクリックして、認証を失敗させる
+		checkloginButton.click();
+		// 画面が切り替わるのを少し待つ
+		Thread.sleep(2000);
+
+		// 2. 画面上のエラーメッセージが表示されるエリア（要素）を取得する
+		final WebElement errorMessage = webDriver.findElement(By.cssSelector(".help-inline.error"));
+
+		// 3. エラーメッセージが画面に表示されているかチェック
+		assertTrue(errorMessage.isDisplayed(), "ログインに失敗しました。");
 
 		//エビデンスを撮る
 		File file2 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
 
 		Files.copy(file2.toPath(), Paths.get("./evidence/Case02/No.2.png"));
-		System.out.println("テスト1:IDとパスワードの入力を完了し、エビデンスを保存しました。");
+		System.out.println("No.2:IDとパスワードの入力を完了し、エビデンスを保存しました。");
 	}
 
 }
