@@ -119,8 +119,7 @@ public class Case08 {
 	@DisplayName("テスト03 提出済の研修日の「詳細」ボタンを押下しセクション詳細画面に遷移")
 	void test03() throws Exception {
 		//提出済みの行にある（二個目の）詳細ボタンを取得する
-		final WebElement detailButton = webDriver
-				.findElement(By.cssSelector("input[value='2'] + input"));
+		final WebElement detailButton = webDriver.findElement(By.cssSelector("input[value='2'] + input"));
 		// 詳細ボタンをクリックする
 		detailButton.click();
 		// 画面が切り替わるまで2秒待つ
@@ -142,8 +141,7 @@ public class Case08 {
 	@DisplayName("テスト04 「確認する」ボタンを押下しレポート登録画面に遷移")
 	void test04() throws Exception {
 
-		final WebElement reportButton = webDriver
-				.findElement(By.cssSelector("input[value='提出済み週報【デモ】を確認する']"));
+		final WebElement reportButton = webDriver.findElement(By.cssSelector("input[value='提出済み週報【デモ】を確認する']"));
 		// 「提出済み週報を確認する」ボタンをクリックする
 		reportButton.click();
 
@@ -167,12 +165,11 @@ public class Case08 {
 		final WebElement textArea = webDriver.findElement(By.tagName("textarea"));
 		// 消去する
 		textArea.clear();
-		// 修正用の新しい報告内容のテキストを打つ
-		textArea.sendKeys("週報の修正テスト入力を完了しました。");
-		// 文字の入力反映をしっかり1秒待つ
+		// 修正用の新しい報告内容のテキストを打つ(ただし、1～10の半角数字のみ）
+		textArea.sendKeys("7");
+		// 文字の入力反映を待つ
 		Thread.sleep(1000);
 
-		// ケース07で送信タイプ（type='submit'）の提出ボタンをCSSセレクターで取得する
 		final WebElement submitButton = webDriver.findElement(By.cssSelector(".btn-primary"));
 		// 「提出する」ボタンをクリックして修正内容を送信する
 		submitButton.sendKeys(Keys.ENTER);
@@ -182,7 +179,7 @@ public class Case08 {
 		// 現在の遷移後のURLを取得する
 		String currentUrl = webDriver.getCurrentUrl();
 		// 提出後に無事に元のセクション詳細画面に戻ってきていることを検証する
-		assertTrue(currentUrl.contains("lms"), "提出後に詳細画面に戻っていません。");
+		assertTrue(currentUrl.contains("section/detail"), "提出後に詳細画面に戻っていません。現在のURL" + currentUrl + "です");
 
 		// 提出完了後に戻った『セクション詳細画面』のスクリーンショットを撮影・保存する
 		File file5 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
@@ -194,15 +191,48 @@ public class Case08 {
 	@Test
 	@Order(6)
 	@DisplayName("テスト06 上部メニューの「ようこそ○○さん」リンクからユーザー詳細画面に遷移")
-	void test06() {
-		// TODO ここに追加
+	void test06() throws Exception {
+		final WebElement userLink = webDriver.findElement(By.cssSelector("a[href='/lms/user/detail']")); // 「ようこそ○○さん」リンクを押下する
+		userLink.click();
+
+		// 画面が切り替わるまで待つ
+		Thread.sleep(2000);
+
+		// 現在の遷移後のURLを取得する
+		String currentUrl = webDriver.getCurrentUrl();
+		// ユーザー詳細画面に遷移していることをURLで検証
+		assertTrue(currentUrl.contains("user"), "ユーザー詳細画面に遷移していません。（現在のURL: " + currentUrl + "）");
+
+		// ユーザー詳細画面のスクリーンショットを撮影・保存する（エビデンスNo.6）
+		File file6 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+		Files.copy(file6.toPath(), Paths.get("./evidence/Case08/No.6.png"));
+
+		System.out.println("No.6: ユーザー詳細画面への遷移とエビデンス保存を完了しました。");
 	}
 
 	@Test
 	@Order(7)
 	@DisplayName("テスト07 該当レポートの「詳細」ボタンを押下しレポート詳細画面で修正内容が反映される")
-	void test07() {
-		// TODO ここに追加
+	void test07() throws Exception {
+		final WebElement reportDetailButton = webDriver
+				.findElement(By.cssSelector("form:has(input[value='3']) input[value='詳細']"));
+		// 「詳細」ボタンをクリックする
+		reportDetailButton.sendKeys(Keys.ENTER);
+
+		// 画面が切り替わるまで2秒待つ
+		Thread.sleep(2000);
+
+		// 画面全体のテキストを取得する
+		String pageText = webDriver.findElement(By.tagName("body")).getText();
+
+		// 【検証】
+		assertTrue(pageText.contains("報告レポート"), "修正した内容がレポート詳細画面に反映されていません。");
+
+		// 最終確認画面のスクリーンショットを撮影・保存する（エビデンスNo.7）
+		File file7 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+		Files.copy(file7.toPath(), Paths.get("./evidence/Case08/No.7.png"));
+
+		System.out.println("No.7: レポート詳細画面への遷移と修正内容の反映確認、エビデンス保存を完了しました。");
 	}
 
 }
