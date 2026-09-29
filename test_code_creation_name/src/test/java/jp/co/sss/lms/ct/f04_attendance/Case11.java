@@ -14,6 +14,7 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -97,7 +98,7 @@ public class Case11 {
 		//  ログインボタンをクリック
 		checkloginButton.click();
 
-		// 画面が切り替わるのを少し待つ
+		// 画面が切り替わるのを待つ
 		Thread.sleep(2000);
 
 		String currentUrl = webDriver.getCurrentUrl();
@@ -120,36 +121,86 @@ public class Case11 {
 		final WebElement attendanceLink = webDriver.findElement(By.cssSelector("a[href='/lms/attendance/detail']")); // 「ようこそ○○さん」リンクを押下する
 		attendanceLink.click();
 
-		//		// 画面が切り替わるまで待つ
-		//		Thread.sleep(2000);
-		//		webDriver.findElement(By.tagName("body")).sendKeys(Keys.ENTER);
-		//		Thread.sleep(1000);
-		//		// 画面遷移およびアラートが表示されるまで待つ
-		//		Thread.sleep(2000);
-		//		webDriver.findElement(By.linkText("過去日の勤怠に未入力があります。")).sendKeys(Keys.ENTER);
-		//		// 現在の遷移後のURLを取得する
-		//		String currentUrl = webDriver.getCurrentUrl();
-		//		// ユーザー詳細画面に遷移していることをURLで検証
-		//		assertTrue(currentUrl.contains("attendance"), "ユーザー詳細画面に遷移していません。（現在のURL: " + currentUrl + "）");
-		//		// ユーザー詳細画面のスクリーンショットを撮影・保存する（エビデンスNo.3）
-		//		File file3 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
-		//		Files.copy(file3.toPath(), Paths.get("./evidence/Case11/No.3.png"));
-		//
-		//		System.out.println("No.6: ユーザー詳細画面への遷移とエビデンス保存を完了しました。");
+		// 画面遷移を待つ
+		Thread.sleep(2000);
+		// アラートの操作画面に切り替える
+		Alert alert = webDriver.switchTo().alert();
+
+		alert.accept();
+
+		// アラートが閉じて画面が完全に描画されるのを少し待つ
+		Thread.sleep(1500);
+
+		// 勤怠管理画面に正常に遷移することを確認
+		String currentUrl = webDriver.getCurrentUrl();
+		assertTrue(currentUrl.contains("attendance"), "勤怠管理画面に遷移していません。現在のURL: " + currentUrl);
+
+		// ユーザー詳細画面のスクリーンショットを撮影・保存する（エビデンスNo.3）
+		File file3 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+		Files.copy(file3.toPath(), Paths.get("./evidence/Case11/No.3.png"));
+
+		System.out.println("No.6: ユーザー詳細画面への遷移とエビデンス保存を完了しました。");
 	}
 
 	@Test
 	@Order(4)
 	@DisplayName("テスト04 「勤怠情報を直接編集する」リンクから勤怠情報直接変更画面に遷移")
-	void test04() {
-		// TODO ここに追加
+	void test04() throws Exception {
+		// [No.04] 「勤怠情報を直接編集する」リンクを押下する
+		WebElement directEditLink = webDriver.findElement(By.linkText("勤怠情報を直接編集する"));
+		directEditLink.click();
+
+		// 画面の切り替わりを待つ
+		Thread.sleep(2000);
+
+		// 現在のURLを取得する
+		String currentUrl = webDriver.getCurrentUrl();
+		// 勤怠情報直接変更画面に遷移していることをURLで検証（URLにeditやchangeが含まれるかを想定、無ければ仕様書に合わせて変更してください）
+		assertTrue(currentUrl.contains("edit") || currentUrl.contains("attendance"),
+				"勤怠情報直接変更画面に遷移していません。（現在のURL: " + currentUrl + "）");
+
+		// エビデンス（スクリーンショット）を撮影して保存する
+		File file4 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+		Files.copy(file4.toPath(), Paths.get("./evidence/Case11/No.4.png"));
+
+		System.out.println("No.4: 勤怠情報直接変更画面への遷移とエビデンス保存を完了しました。");
 	}
 
 	@Test
 	@Order(5)
 	@DisplayName("テスト05 すべての研修日程の勤怠情報を正しく更新し勤怠管理画面に遷移")
-	void test05() {
-		// TODO ここに追加
+	void test05() throws Exception {
+		// 0から20までの計21回、繰り返す(出勤：時間、分）
+		for (int i = 0; i <= 20; i++) {
+			webDriver.findElement(By.id("startHour" + i)).sendKeys("08");
+			webDriver.findElement(By.id("startMinute" + i)).sendKeys("30");
+		}
+		// 0から20までの計21回、繰り返す(退勤：時間、分）
+		for (int j = 0; j <= 20; j++) {
+			webDriver.findElement(By.id("endHour" + j)).sendKeys("18");
+			webDriver.findElement(By.id("endMinute" + j)).sendKeys("00");
+		}
+
+		WebElement updateButton = webDriver.findElement(By.name("complete"));
+
+		updateButton.sendKeys(org.openqa.selenium.Keys.ENTER);
+		//更新ダイアログの表示
+		Alert alert = webDriver.switchTo().alert();
+		//「OK」ボタンを押下
+		alert.accept();
+
+		// 画面の切り替わりを待つ
+		Thread.sleep(2000);
+
+		// 元の勤怠管理画面に戻っていることをURLで検証
+		String currentUrl = webDriver.getCurrentUrl();
+		assertTrue(currentUrl.contains("attendance"), "元の勤怠管理画面に戻っていません。（現在のURL: " + currentUrl + "）");
+
+		// エビデンス（スクリーンショット）を撮影して保存する
+		File file5 = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+		Files.copy(file5.toPath(), Paths.get("./evidence/Case11/No.5.png"));
+
+		System.out.println("No.5: 勤怠情報の更新完了とエビデンス保存を完了しました。");
 	}
 
 }
